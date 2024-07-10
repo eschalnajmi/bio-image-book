@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from imageio import imread
+import numpy as np
 
 def changeLUT(im_, cmap='gray', title=None, axis=False, vmin=None, vmax=None):
     """
@@ -48,3 +49,11 @@ def genhistogram(im_, title=None, bins=None, color=None):
         plt.title(title)
 
     plt.show()
+
+def printsummarystats(im_):
+    """
+    Output mean, min, max, and standard deviation of pixel values
+    :param im_: numpy array of pixel values
+    """
+    print(f"mean: {im_.mean():.3f}, min: {im_.min()}, max: {im_.max()}, std: {im_.std()}") # calculate summary stats
+    

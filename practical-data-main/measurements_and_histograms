@@ -1,5 +1,4 @@
 from bioimgfunctions import *
-#test
 
 im_ = imread('practical-data-main/images/happy_cell.tif')
 
@@ -9,6 +8,6 @@ print(im_.shape) # returns height, width
 im2_ = im_.transpose() # switches width and height values
 changeLUT(im2_)
 
-print(f"mean: {im_.mean():.3f}, min: {im_.min()}, max: {im_.max()}, std: {im_.std()}") # calculate summary stats
+printsummarystats(im_)
 
 genhistogram(im2_, title='Histogram of pixel values', bins=50, color='red') 
