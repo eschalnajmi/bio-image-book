@@ -3,6 +3,7 @@ from imageio import imread
 import numpy as np
 from skimage.color import rgb2gray # rescales images during conversion
 from helpers import *
+from aicsimageio.aics_image import AICSImage # standardises reading and writing multiple file formats.
 
 def changeLUT(im_, cmap='gray', title=None, axis=False, vmin=None, vmax=None):
     """
@@ -96,6 +97,9 @@ def colorize(im, color, clip_percentile=0.1):
     """
     Helper function to create an RGB image from a single-channel image using a 
     specific color.
+    :param im: numpy array of pixel values
+    :param color: color to use for the image
+    :param clip_percentile: percentile to clip the image at
     """
     # Check that we do just have a 2D image
     if im.ndim > 2 and im.shape[2] != 1:
@@ -126,3 +130,80 @@ def createcomposite(im_):
 
     composite = np.clip(red + green, 0, 1)
     changeLUT(composite, title="composite")    
+
+def get_px_size_and_metadata(rel_path):
+    """
+    Get pixel size and metadata of an image using the AICS image library
+    :param rel_path: relative path to the image
+    """
+    path = find_image(rel_path)[0]
+    im_aics = AICSImage(path) # creates an AICS image object
+    print(im_aics) # outputs the main attributes
+    for d in dir(im_aics):
+        if not d.startswith('_'):
+            print(d) # ouputs all attributes
+
+    #print(im_aics.physical_pixel_sizes) # outputs the physical pixel sizes
+    print(im_aics.dims) # output dimensions
+    print(f'Shape: {im_aics.dims.shape}')
+    print(f'Order: {im_aics.dims.order}')
+
+    # AICS treats RGB as a special case with 6 dimensions. The extra dimension is called S for Samples.
+    # Can use np.squeeze() to convert the px array to being matplotlib friendly.
+    return im_aics
+
+def gen_z_projection(rel_path, axis=0):
+    im = load_image(rel_path)
+
+    single = im[:, 0, ...] # gives all z slices in the first channel 
+
+    plt.figure(figsize=(16, 4))
+
+    plt.subplot(1, 4, 1)
+    plt.imshow(single.max(axis=axis))
+    plt.axis(False)
+    plt.title('Max z-projection')
+
+    plt.subplot(1, 4, 2)
+    plt.imshow(single.min(axis=axis))
+    plt.axis(False)
+    plt.title('Min z-projection')
+
+    plt.subplot(1, 4, 3)
+    plt.imshow(single.mean(axis=axis))
+    plt.axis(False)
+    plt.title('Mean z-projection')
+
+    plt.subplot(1, 4, 4)
+    plt.imshow(single.std(axis=axis))
+    plt.axis(False)
+    plt.title('Std.dev. z-projection')
+
+    plt.show()
+
+def obtain_orthogonal_views(rel_path):
+    im = load_image(rel_path)
+
+    single = im[:, 0, ...] # gives all z slices in the first channel 
+
+    plt.figure(figsize=(8, 8))
+
+    plt.subplot(2, 2, 1)
+    plt.imshow(single[single.shape[0]//2, ...])
+    plt.axis(False)
+    plt.title('Middle z-slice')
+
+    plt.subplot(2, 2, 3)
+
+    plt.imshow(single[:, single.shape[1]//2, ...])
+    plt.axis(False)
+    plt.title('Middle row')
+
+    plt.subplot(2, 2, 2)
+    plt.imshow(single[..., single.shape[2]//2].transpose())
+    plt.axis(False)
+    plt.title('Middle column')
+
+    plt.tight_layout()
+    plt.show()
+
