@@ -4,6 +4,8 @@ import numpy as np
 from skimage.color import rgb2gray # rescales images during conversion
 from helpers import *
 from aicsimageio.aics_image import AICSImage # standardises reading and writing multiple file formats.
+from PIL import Image
+import tifffile
 
 def changeLUT(im_, cmap='gray', title=None, axis=False, vmin=None, vmax=None):
     """
@@ -153,6 +155,11 @@ def get_px_size_and_metadata(rel_path):
     return im_aics
 
 def gen_z_projection(rel_path, axis=0):
+    """
+    Generate z-projections of an image
+    :param rel_path: relative path to the image
+    :param axis: axis to project along - defaults to 0 
+    """
     im = load_image(rel_path)
 
     single = im[:, 0, ...] # gives all z slices in the first channel 
@@ -182,6 +189,10 @@ def gen_z_projection(rel_path, axis=0):
     plt.show()
 
 def obtain_orthogonal_views(rel_path):
+    """
+    Obtain orthogonal views of an image
+    :param rel_path: relative path to the image
+    """
     im = load_image(rel_path)
 
     single = im[:, 0, ...] # gives all z slices in the first channel 
@@ -207,3 +218,17 @@ def obtain_orthogonal_views(rel_path):
     plt.tight_layout()
     plt.show()
 
+def read_nparray_with_pillow(rel_path):
+    """
+    Read a numpy array with Pillow
+    :param rel_path: relative path to the image
+    """
+    path = find_image(rel_path)[0]
+    
+    with open(path, 'rb') as f: # read and convert img to numpy array
+        im_pillow = Image.open(f)
+        im = np.asarray(im_pillow)
+
+    print(f"mean: {im.mean()}")
+
+    changeLUT(im, title="Pillow image")
